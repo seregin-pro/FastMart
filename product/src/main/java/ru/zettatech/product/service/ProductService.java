@@ -26,19 +26,6 @@ public class ProductService {
         return repository.findAll(pageable);
     }
 
-//    public List<Product> searchAllByFilter(ProductFilter filter) {
-//        int pageSize = filter.pageSize() != null
-//                ? filter.pageSize() : 10;
-//        int pageNumber = filter.pageNumber() != null
-//                ? filter.pageNumber() : 0;
-//
-//        var pageable = Pageable
-//                .ofSize(pageSize)
-//                .withPage(pageNumber);
-//
-//        return repository.searchAllByFilter(pageable);
-//    }
-
     public Product findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Not found product by id = " + id));

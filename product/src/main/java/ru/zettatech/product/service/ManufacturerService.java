@@ -2,7 +2,12 @@ package ru.zettatech.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.zettatech.product.filter.ManufacturerFilter;
+import ru.zettatech.product.model.Category;
 import ru.zettatech.product.model.Manufacturer;
 import ru.zettatech.product.repositary.ManufacturerRepository;
 
@@ -17,8 +22,9 @@ public class ManufacturerService {
         return repository.save(manufacturer);
     }
 
-    public List<Manufacturer> findAll() {
-        return repository.findAll();
+    public Page<Manufacturer> findAll(ManufacturerFilter filter) {
+        Pageable pageable = PageRequest.of(filter.page(), filter.limit());
+        return repository.findAll(pageable);
     }
 
     public Manufacturer findById(Long id) {

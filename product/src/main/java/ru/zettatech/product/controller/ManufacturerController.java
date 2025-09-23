@@ -1,11 +1,15 @@
 package ru.zettatech.product.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.zettatech.product.filter.ManufacturerFilter;
+import ru.zettatech.product.filter.ProductFilter;
 import ru.zettatech.product.model.Category;
 import ru.zettatech.product.model.Manufacturer;
+import ru.zettatech.product.model.Product;
 import ru.zettatech.product.repositary.ManufacturerRepository;
 import ru.zettatech.product.service.ManufacturerService;
 
@@ -23,12 +27,18 @@ class ManufacturerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Manufacturer>> getManufacturers(
-            @RequestParam(name = "pageSize", required = false) Integer pageSize,
-            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    public ResponseEntity<Page<Manufacturer>> getManufacturers(
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "limit", required = false) Integer limit
     ) {
-        return ResponseEntity.ok(service.findAll());
+        var filter = new ManufacturerFilter(
+                page,
+                limit
+        );
+
+        return ResponseEntity.ok(service.findAll(filter));
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<Manufacturer> getManufacturerById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(service.findById(id));

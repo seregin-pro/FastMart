@@ -1,15 +1,13 @@
 package ru.zettatech.product.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.zettatech.product.filter.CategoryFilter;
 import ru.zettatech.product.model.Category;
-import ru.zettatech.product.model.Product;
-import ru.zettatech.product.repositary.CategoryRepository;
 import ru.zettatech.product.service.CategoryService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/categories")
@@ -23,8 +21,16 @@ class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> getCategories() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<Category>> getCategories(
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "limit", required = false) Integer limit
+    ) {
+        var filter = new CategoryFilter(
+                page,
+                limit
+        );
+
+        return ResponseEntity.ok(service.findAll(filter));
     }
 
     @GetMapping("/{id}")
