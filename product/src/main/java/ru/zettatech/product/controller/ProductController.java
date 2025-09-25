@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/products")
-class ProductController {
+public class ProductController {
 
     @Autowired
     private ProductService service;
@@ -51,8 +51,7 @@ class ProductController {
         return (service.existsById(id))
                 ? new ResponseEntity<>(service.save(product),
                 HttpStatus.OK)
-                : new ResponseEntity<>(service.save(product),
-                HttpStatus.CREATED);
+                : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
     }
 
     @DeleteMapping("/{id}")

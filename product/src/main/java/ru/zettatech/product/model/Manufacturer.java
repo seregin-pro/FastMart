@@ -14,14 +14,14 @@ import lombok.Setter;
 public class Manufacturer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String name;
     private String image;
 
     public Manufacturer() {
     }
 
-    public Manufacturer(int id, String name, String image) {
+    public Manufacturer(Long id, String name, String image) {
         this.id = id;
         this.name = name;
         this.image = image;

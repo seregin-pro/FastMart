@@ -49,8 +49,7 @@ class CategoryController {
         return (service.existsById(id))
                 ? new ResponseEntity<>(service.save(category),
                 HttpStatus.OK)
-                : new ResponseEntity<>(service.save(category),
-                HttpStatus.CREATED);
+                : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
     }
 
     @DeleteMapping("/{id}")

@@ -57,7 +57,7 @@ class ManufacturerController {
     ) {
         return (service.existsById(id))
                 ? new ResponseEntity<>(service.save(manufacturer), HttpStatus.OK)
-                : new ResponseEntity<>(service.save(manufacturer), HttpStatus.CREATED);
+                : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
     }
 
     @DeleteMapping("/{id}")
