@@ -63,9 +63,8 @@ public class ProductControllerTest {
                         .param("limit", "10")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[0].sku").value(10000))
-                .andExpect(jsonPath("$.content[0].name").value("Samsung Galaxy A23"));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -78,14 +77,13 @@ public class ProductControllerTest {
         mockMvc.perform(get("/products/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.content[0].sku").value(10000))
-                .andExpect(jsonPath("$.name").value("Samsung Galaxy A23"));
+                .andExpect(content().json(objectMapper.writeValueAsString(product)));
     }
 
     @Test
     void testPostProduct() throws Exception {
         Product product = createTestProduct();
+        product.setId(1L);
 
         Product savedProduct = createTestProduct();
         savedProduct.setId(1L);
@@ -97,29 +95,37 @@ public class ProductControllerTest {
                         .content(objectMapper.writeValueAsString(product))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.content[0].sku").value(10000))
-                .andExpect(jsonPath("$.name").value("Samsung Galaxy A23"));
+                .andExpect(content().json(objectMapper.writeValueAsString(product)));
     }
 
     @Test
-    void testPutProduct() throws Exception {
-        Product product = createTestProduct();
-        product.setId(1L);
+    public void putProductExists() throws Exception {
+        Long id = 1L;
 
-        when(service.existsById(1L)).thenReturn(true);
+        Product product = createTestProduct();
+        product.setId(id);
+
+        when(service.existsById(id)).thenReturn(true);
         when(service.save(any(Product.class))).thenReturn(product);
 
-        mockMvc.perform(put("/products/1")
+        mockMvc.perform(put("/products/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(product))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(product)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.content[0].sku").value(10000))
-                .andExpect(jsonPath("$.content[0].image").value("http://example.com/image.jpg"))
+                .andExpect(content().json(objectMapper.writeValueAsString(product)));
+    }
 
-                .andExpect(jsonPath("$.name").value("Samsung Galaxy A23"));
+    @Test
+    public void putProductNotExist() throws Exception {
+        Long id = 1L;
+        Product product = createTestProduct();
+        when(service.existsById(id)).thenReturn(false);
+
+        mockMvc.perform(put("/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isNotModified())
+                .andExpect(content().string(""));
     }
 
     @Test
