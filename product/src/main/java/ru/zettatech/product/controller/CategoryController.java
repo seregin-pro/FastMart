@@ -11,7 +11,7 @@ import ru.zettatech.product.service.CategoryService;
 
 @RestController
 @RequestMapping("/categories")
-class CategoryController {
+public class CategoryController {
 
     @Autowired
     private CategoryService service;
