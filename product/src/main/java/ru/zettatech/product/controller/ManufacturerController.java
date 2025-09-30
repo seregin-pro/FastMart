@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/manufacturers")
-class ManufacturerController {
+public class ManufacturerController {
 
     @Autowired
     private ManufacturerService service;
