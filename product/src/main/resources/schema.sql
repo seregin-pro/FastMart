@@ -1,4 +1,16 @@
 --
+-- Table structure for table `product_category`
+--
+
+DROP TABLE IF EXISTS `product_category`;
+CREATE TABLE `product_category` (
+  `product_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  PRIMARY KEY (`product_id`,`category_id`),
+  KEY `category_id` (`category_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
 -- Table structure for table `product`
 --
 
@@ -44,16 +56,4 @@ CREATE TABLE `category` (
   `status` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `parent_id` (`parent_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Table structure for table `product_category`
---
-
-DROP TABLE IF EXISTS `product_category`;
-CREATE TABLE `product_category` (
-  `product_id` int(11) NOT NULL,
-  `category_id` int(11) NOT NULL,
-  PRIMARY KEY (`product_id`,`category_id`),
-  KEY `category_id` (`category_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

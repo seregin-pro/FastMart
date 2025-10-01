@@ -23,7 +23,10 @@ public class ManufacturerService {
     }
 
     public Page<Manufacturer> findAll(ManufacturerFilter filter) {
-        Pageable pageable = PageRequest.of(filter.page(), filter.limit());
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository.findAll(pageable);
     }
 
