@@ -13,8 +13,6 @@ import ru.zettatech.product.filter.ProductFilter;
 import ru.zettatech.product.model.Product;
 import ru.zettatech.product.repositary.ProductRepository;
 
-import java.util.List;
-
 @Service
 public class ProductService {
     @Autowired
