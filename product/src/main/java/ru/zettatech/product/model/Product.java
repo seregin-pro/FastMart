@@ -20,13 +20,17 @@ public class Product {
     private int quantity;
     private String image;
     private String name;
+
+    @Lob
     private String description;
+
     @ManyToOne @JoinColumn(name = "manufacturer_id")
     private Manufacturer manufacturer;
     private BigDecimal price;
     private BigDecimal weight;
     private byte status;
     private int viewed;
+
     @JsonProperty("date_added")
     private Date dateAdded;
 
