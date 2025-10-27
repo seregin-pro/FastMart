@@ -2,6 +2,9 @@ package ru.zettatech.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +20,7 @@ public class ProductService {
     @Autowired
     private ProductRepository repository;
 
+    @CachePut(value = "products", key = "#product.id")
     public Product save(Product product) {
         return repository.save(product);
     }
@@ -29,11 +33,13 @@ public class ProductService {
         return repository.findAll(pageable);
     }
 
+    @Cacheable(value = "products", key = "#id")
     public Product findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Not found product by id = " + id));
     }
 
+    @CacheEvict(value = "products", key = "#id")
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
