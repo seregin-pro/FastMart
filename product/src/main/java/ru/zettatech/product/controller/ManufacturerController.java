@@ -15,6 +15,7 @@ import ru.zettatech.product.service.ManufacturerService;
 
 import java.util.List;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/manufacturers")
 public class ManufacturerController {

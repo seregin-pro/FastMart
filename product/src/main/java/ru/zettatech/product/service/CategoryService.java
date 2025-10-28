@@ -2,6 +2,9 @@ package ru.zettatech.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +22,7 @@ public class CategoryService {
     @Autowired
     private CategoryRepository repository;
 
+    @CachePut(value = "categories", key = "#category.id")
     public Category save(Category category) {
         return repository.save(category);
     }
@@ -35,11 +39,13 @@ public class CategoryService {
         return repository.findAll(pageable);
     }
 
+    @Cacheable(value = "categories", key = "#id")
     public Category findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Not found category by id = " + id));
     }
 
+    @CacheEvict(value = "categories", key = "#id")
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
