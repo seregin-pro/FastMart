@@ -1,0 +1,54 @@
+package ru.zettatech.productservice.service;
+
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import ru.zettatech.productservice.filter.CategoryFilter;
+import ru.zettatech.productservice.model.Category;
+import ru.zettatech.productservice.repositary.CategoryRepository;
+
+import java.util.List;
+
+@Service
+public class CategoryService {
+    @Autowired
+    private CategoryRepository repository;
+
+    @CachePut(value = "categories", key = "#category.id")
+    public Category save(Category category) {
+        return repository.save(category);
+    }
+
+    public List<Category> findAll() {
+        return repository.findAll();
+    }
+
+    public Page<Category> findAll(CategoryFilter filter) {
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return repository.findAll(pageable);
+    }
+
+    @Cacheable(value = "categories", key = "#id")
+    public Category findById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Not found category by id = " + id));
+    }
+
+    @CacheEvict(value = "categories", key = "#id")
+    public void deleteById(Long id) {
+        repository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return repository.existsById(id);
+    }
+}
