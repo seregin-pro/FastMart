@@ -6,7 +6,6 @@ plugins {
 
 group = "ru.zettatech.productservice"
 version = "0.0.1-SNAPSHOT"
-description = "Product service"
 
 java {
     toolchain {
@@ -27,7 +26,6 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    //implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.postgresql:postgresql")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
