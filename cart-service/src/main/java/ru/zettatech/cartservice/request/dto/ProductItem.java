@@ -8,10 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductItem {
-
 	private Long productId;
-	private String productName;
-	private Long productQuantity;
+	private String name;
+	private Long quantity;
 	private BigDecimal pricePerUnit;
-	private String imageUrl;
+	private String image;
 }

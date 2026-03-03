@@ -8,7 +8,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class ShoppingCart {
 
@@ -19,30 +23,6 @@ public class ShoppingCart {
 	@OneToMany(mappedBy = "cart")
 	private Set<CartItem> cartItems = new HashSet<>();
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public Set<CartItem> getCartItems() {
-		return cartItems;
-	}
-
-	public void setCartItems(Set<CartItem> cartItems) {
-		this.cartItems = cartItems;
-	}
-
 	public void addItemToCart(CartItem cartItem) {
 		cartItems.add(cartItem);
 	}
@@ -50,5 +30,4 @@ public class ShoppingCart {
 	public void removeCartItem(CartItem cartItem) {
 		cartItems.remove(cartItem);
 	}
-
 }

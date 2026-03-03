@@ -79,13 +79,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 				ShoppingCart cart = shoppingCartRepository.findById(request.getCartId()).orElse(null);
 				CartItem cartItem = new CartItem();
 				cartItem.setProductId(request.getProductItem().getProductId());
-				cartItem.setProductName(request.getProductItem().getProductName());
-				cartItem.setProductQuantity(request.getProductItem().getProductQuantity());
+				cartItem.setProductName(request.getProductItem().getName());
+				cartItem.setProductQuantity(request.getProductItem().getQuantity());
 				totalPrice = request.getProductItem().getPricePerUnit()
-						.multiply(new BigDecimal(request.getProductItem().getProductQuantity()));
+						.multiply(new BigDecimal(request.getProductItem().getQuantity()));
 				cartItem.setTotalPrice(totalPrice);
 				cartItem.setPricePerUnit(request.getProductItem().getPricePerUnit());
-				cartItem.setProductImageUrl(request.getProductItem().getImageUrl());
+				cartItem.setProductImageUrl(request.getProductItem().getImage());
 				cart.addItemToCart(cartItem);
 				cartItem.setCart(cart);
 				shoppingCartRepository.save(cart);

@@ -10,3 +10,4 @@ rootProject.name = "FastMart"
 include("product-service")
 include("cart-service")
 include("customer-service")
+include("order-service")
