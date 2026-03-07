@@ -1,29 +1,20 @@
 package ru.zettatech.cartservice.service;
 
-import java.math.BigDecimal;
-
 import jakarta.transaction.Transactional;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import ru.zettatech.cartservice.entity.CartItem;
 import ru.zettatech.cartservice.entity.ShoppingCart;
 import ru.zettatech.cartservice.repository.CartItemRepository;
 import ru.zettatech.cartservice.repository.ShoppingCartRepository;
-import ru.zettatech.cartservice.request.dto.AddProductToCartRequest;
-import ru.zettatech.cartservice.request.dto.CheckCartPredicate;
-import ru.zettatech.cartservice.request.dto.CleanCartRequest;
-import ru.zettatech.cartservice.request.dto.CreateShoppingCartRequest;
-import ru.zettatech.cartservice.request.dto.DecreaseProductQtyRequest;
-import ru.zettatech.cartservice.request.dto.GetCartItemRequest;
-import ru.zettatech.cartservice.request.dto.RemoveProductFromCartRequest;
+import ru.zettatech.cartservice.request.dto.*;
 import ru.zettatech.cartservice.response.dto.CreateShoppingCartResponse;
 import ru.zettatech.cartservice.response.dto.ServiceResponse;
 
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
 
 @Service
 @Slf4j
@@ -35,14 +26,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 	@Autowired
 	private CartItemRepository cartItemRepository;
 
-	@Override
+    @Override
 	public ResponseEntity<?> createShoppingCart(CreateShoppingCartRequest request) {
 		ResponseEntity<?> response;
 		CreateShoppingCartResponse createShoppingCartResponse = new CreateShoppingCartResponse();
 		ServiceResponse res = new ServiceResponse();
 		try {
 			ShoppingCart cart = new ShoppingCart();
-			cart.setUserId(request.getUserId());
+			cart.setUserId(request.getCustomerId());
 			ShoppingCart savedShoppingCart = shoppingCartRepository.save(cart);
 			createShoppingCartResponse.setCode("200");
 			createShoppingCartResponse.setMessage("Shopping cart created!");
@@ -52,55 +43,56 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 			log.error("Error Creating Shoppin Cart");
 			res.setCode("501");
 			res.setMessage("Internal Server Error");
-			response = new ResponseEntity<ServiceResponse>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+			response = new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return response;
 	}
 
 	@Override
 	public ResponseEntity<?> addProductToCart(AddProductToCartRequest request) {
-		ResponseEntity<?> response = null;
+		ResponseEntity<?> response;
 		ServiceResponse res = new ServiceResponse();
-		BigDecimal totalPrice = BigDecimal.ZERO;
+		BigDecimal totalPrice;
+
 		try {
 			CartItem presentCartItem = cartItemRepository.findByCartIdAndProductId(request.getCartId(),
 					request.getProductItem().getProductId());
+
 			if (!(presentCartItem == null)) {
 				presentCartItem.setProductQuantity(presentCartItem.getProductQuantity() + 1);
 				totalPrice = presentCartItem.getTotalPrice().add(presentCartItem.getPricePerUnit());
-				// totalPrice =
-				// presentCartItem.getPricePerUnit().add(presentCartItem.getTotalPrice());
 				presentCartItem.setTotalPrice(totalPrice);
 				cartItemRepository.save(presentCartItem);
 				res.setCode("200");
 				res.setMessage("products added successfully to the cart");
-				response = new ResponseEntity<ServiceResponse>(res, HttpStatus.OK);
+				response = new ResponseEntity<>(res, HttpStatus.OK);
 			} else {
 				ShoppingCart cart = shoppingCartRepository.findById(request.getCartId()).orElse(null);
 				CartItem cartItem = new CartItem();
 				cartItem.setProductId(request.getProductItem().getProductId());
-				cartItem.setProductName(request.getProductItem().getName());
-				cartItem.setProductQuantity(request.getProductItem().getQuantity());
+				cartItem.setProductName(request.getProductItem().getProductName());
+				cartItem.setProductQuantity(request.getProductItem().getProductQuantity());
 				totalPrice = request.getProductItem().getPricePerUnit()
-						.multiply(new BigDecimal(request.getProductItem().getQuantity()));
+						.multiply(new BigDecimal(request.getProductItem().getProductQuantity()));
 				cartItem.setTotalPrice(totalPrice);
 				cartItem.setPricePerUnit(request.getProductItem().getPricePerUnit());
-				cartItem.setProductImageUrl(request.getProductItem().getImage());
+				cartItem.setProductImageUrl(request.getProductItem().getImageUrl());
 				cart.addItemToCart(cartItem);
 				cartItem.setCart(cart);
 				shoppingCartRepository.save(cart);
 				cartItemRepository.save(cartItem);
 				res.setCode("200");
 				res.setMessage("products added successfully to the cart");
-				response = new ResponseEntity<ServiceResponse>(res, HttpStatus.OK);
+				response = new ResponseEntity<>(res, HttpStatus.OK);
 			}
 
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			res.setCode("501");
 			res.setMessage("Internal Server Error!");
-			response = new ResponseEntity<ServiceResponse>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+			response = new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+
 		return response;
 	}
 

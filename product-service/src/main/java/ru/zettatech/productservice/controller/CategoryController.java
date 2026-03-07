@@ -9,8 +9,9 @@ import ru.zettatech.productservice.filter.CategoryFilter;
 import ru.zettatech.productservice.model.Category;
 import ru.zettatech.productservice.service.CategoryService;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/categories")
 public class CategoryController {
 
     @Autowired

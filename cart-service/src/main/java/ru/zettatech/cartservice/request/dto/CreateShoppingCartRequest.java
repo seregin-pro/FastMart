@@ -10,6 +10,5 @@ import lombok.Setter;
 public class CreateShoppingCartRequest {
 
 //	@NotBlank(message = "userId is required to create user shopping cart")
-	private Long userId;
-	
+	private Long customerId;
 }

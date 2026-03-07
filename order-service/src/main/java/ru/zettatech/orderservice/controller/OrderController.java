@@ -20,23 +20,17 @@ public class OrderController {
 	
 	@PostMapping("/get_all_orders")
 	public ResponseEntity<?> getAllOrders(@RequestBody GetAllOrderRequest request){
-		ResponseEntity<?> response = orderService.getAllOrders(request);
-		return response;
+        return orderService.getAllOrders(request);
 	}
 	
 	@PostMapping("/create_order")
 	public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request){
-		
-		ResponseEntity<?> response = orderService.createOrder(request);
-		
-		return response;
+        return orderService.createOrder(request);
 		
 	}
 	
 	@PostMapping("/cancel_order")
 	public ResponseEntity<?> cancelOrder(@RequestBody CancelOrderRequest request){
-		ResponseEntity<?> response = orderService.cancelOrder(request);
-		return response;
+        return orderService.cancelOrder(request);
 	}
-	
 }

@@ -37,8 +37,6 @@ public class OrderServiceImpl implements OrderService {
 			productOrder.setCartId(request.getCartId());
 			productOrder.setOrderStatus("In progress");
 			
-			//Set<OrderItem> orderItems = new HashSet<>();
-			
 			List<OrderItem> orderItems = new ArrayList<>();
 			
 			for(int i = 0; i < request.getOrderItems().size(); i++) {

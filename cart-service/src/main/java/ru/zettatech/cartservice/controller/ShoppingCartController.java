@@ -45,7 +45,6 @@ public class ShoppingCartController {
 			ResponseEntity<?> response = shoppingCartService.createShoppingCart(request);
 			return response;
 		}
-
 	}
 
 	@PostMapping("/add_product_to_cart")
