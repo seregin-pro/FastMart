@@ -9,5 +9,5 @@ plugins {
 rootProject.name = "FastMart"
 include("product-service")
 include("cart-service")
-include("customer-service")
+include("user-service")
 include("order-service")
