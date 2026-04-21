@@ -1,18 +1,18 @@
-package com.iavtar.userservice.service;
+package ru.zettatech.userservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.iavtar.userservice.entity.Address;
-import com.iavtar.userservice.entity.User;
-import com.iavtar.userservice.repository.UserRepository;
-import com.iavtar.userservice.request.dto.CreateUpdateAddressRequest;
-import com.iavtar.userservice.request.dto.CreateUserRequest;
-import com.iavtar.userservice.request.dto.UserInfoRequest;
-import com.iavtar.userservice.response.dto.ServiceResponse;
-import com.iavtar.userservice.response.dto.UserInfoResponse;
+import ru.zettatech.userservice.entity.Address;
+import ru.zettatech.userservice.entity.User;
+import ru.zettatech.userservice.repository.UserRepository;
+import ru.zettatech.userservice.request.dto.CreateUpdateAddressRequest;
+import ru.zettatech.userservice.request.dto.CreateUserRequest;
+import ru.zettatech.userservice.request.dto.UserInfoRequest;
+import ru.zettatech.userservice.response.dto.ServiceResponse;
+import ru.zettatech.userservice.response.dto.UserInfoResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
 				userInfo.setEmail(user.getEmail());				
 
 				if(!(userInfo.getAddress() == null)) {
-					com.iavtar.userservice.response.dto.Address address = new com.iavtar.userservice.response.dto.Address();
+					ru.zettatech.userservice.response.dto.Address address = new ru.zettatech.userservice.response.dto.Address();
 					address.setAddressId(user.getAddress().getAddressId());
 					address.setAddressLine(user.getAddress().getAddressLine());
 					address.setCity(user.getAddress().getCity());

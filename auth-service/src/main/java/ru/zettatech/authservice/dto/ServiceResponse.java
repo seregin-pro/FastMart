@@ -1,4 +1,4 @@
-package ru.zettatech.userservice.response.dto;
+package ru.zettatech.authservice.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,5 +9,5 @@ public class ServiceResponse {
 
 	private String code;
 	private String message;
-
+	
 }

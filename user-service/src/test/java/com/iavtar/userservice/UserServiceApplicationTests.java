@@ -1,4 +1,4 @@
-package com.iavtar.userservice;
+package ru.zettatech.userservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package com.iavtar.userservice.request.dto;
+package ru.zettatech.userservice.request.dto;
 
 import lombok.Getter;
 import lombok.Setter;

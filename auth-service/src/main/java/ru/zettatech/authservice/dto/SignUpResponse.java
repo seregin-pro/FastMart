@@ -1,13 +1,14 @@
-package ru.zettatech.userservice.response.dto;
+package ru.zettatech.authservice.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ServiceResponse {
+public class SignUpResponse {
 
+	private Long userId;
 	private String code;
 	private String message;
-
+	
 }

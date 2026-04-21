@@ -1,4 +1,4 @@
-package com.iavtar.userservice.entity;
+package ru.zettatech.userservice.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
