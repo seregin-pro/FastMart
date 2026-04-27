@@ -1,5 +1,6 @@
 package ru.zettatech.authservice.security;
 
+import org.springframework.security.core.GrantedAuthority;
 import ru.zettatech.authservice.entity.Role;
 import ru.zettatech.authservice.entity.User;
 import ru.zettatech.authservice.model.UserPrincipal;
@@ -12,6 +13,81 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -45,7 +121,7 @@ public class JWTTokenProvider {
 		}
 
 		Long userId = userPrincipal.getId();
-		
+
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("userId", userId);
 		claims.put("userName", userPrincipal.getUsername());
@@ -53,7 +129,7 @@ public class JWTTokenProvider {
 		claims.put("lastName", userPrincipal.getLastName());
 		claims.put("email", userPrincipal.getEmail());
 		claims.put("authList", authList);
-		
+
 		return Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiryDate)
 				.signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
 
@@ -62,9 +138,9 @@ public class JWTTokenProvider {
 	// validate token
 	public boolean validateToken(String token) {
 		try {
-			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+			Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(token).getBody();
 			return true;
-		} catch (SignatureException ex) {
+		} catch (io.jsonwebtoken.SignatureException ex) {
 			log.error("Invalid JWT Signature");
 		} catch (MalformedJwtException ex) {
 			log.error("Invalid JWT token");
@@ -79,11 +155,14 @@ public class JWTTokenProvider {
 		return false;
 	}
 
-	//Get username from the token
 	public String getUsernameFromJWT(String token) {
-		Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+		Claims claims = Jwts
+                .parser()
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseSignedClaims(token).getPayload();
+
 		String username = (String) claims.get("userName");
 		return username;
 	}
-	
 }
