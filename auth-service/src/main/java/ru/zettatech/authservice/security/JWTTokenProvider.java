@@ -116,7 +116,8 @@ public class JWTTokenProvider {
 			roles = user.getRoles();
 		}
 		List<String> authList = new ArrayList<>();
-		for (Role role : roles) {
+        assert roles != null;
+        for (Role role : roles) {
 			authList.add(role.getName());
 		}
 
