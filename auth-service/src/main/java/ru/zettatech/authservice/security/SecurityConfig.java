@@ -24,7 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity( // <-- Новая аннотация
+@EnableMethodSecurity(
 		prePostEnabled = true,
 		jsr250Enabled = true,
 		securedEnabled = true
