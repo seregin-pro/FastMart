@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AmplicodePersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit moduleName="FastMart.auth-service.main" name="Default">
+        <packages>
+          <package value="ru.zettatech.authservice" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="FastMart.cart-service.main" name="Default">
+        <packages>
+          <package value="ru.zettatech.cartservice" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="FastMart.order-service.main" name="Default">
+        <packages>
+          <package value="ru.zettatech.orderservice" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="FastMart.product-service.main" name="Default">
+        <packages>
+          <package value="ru.zettatech.productservice" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="FastMart.user-service.main" name="Default">
+        <packages>
+          <package value="com.iavtar.userservice" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
+</project>

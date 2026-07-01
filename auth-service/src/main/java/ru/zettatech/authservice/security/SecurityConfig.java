@@ -35,9 +35,6 @@ public class SecurityConfig {
 	private JwtAuthenticationEntryPoint unauthorizedHandler;
 
 	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-	@Autowired
 	private UserServiceImpl userDetailsService;
 
 	// Бин для кастомного фильтра JWT
@@ -80,6 +77,12 @@ public class SecurityConfig {
 		return http.build();
 	}
 
+	// Используется в методе configureGlobal() для настройки провайдера аутентификации
+	@Bean
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
 	// Бин AuthenticationManager, используется для процесса аутентификации (логина)
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) {
@@ -89,7 +92,7 @@ public class SecurityConfig {
 	// Конфигурация провайдера аутентификации: где брать пользователей и как шифровать пароли
 	@Bean
 	public void configureGlobal(AuthenticationManagerBuilder auth) {
-		auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
+		auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
 	}
 
 	// Конфигурация CORS для фронтенд-приложений (например, на localhost:3000)
