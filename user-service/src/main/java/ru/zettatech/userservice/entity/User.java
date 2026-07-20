@@ -24,7 +24,7 @@ public class User {
 	private String lastName;
 	private String email;
 	@OneToOne
-	private Address address;
+	private ru.zettatech.userservice.entity.Address address;
 	private Long cartId;
 	
 }

@@ -1,10 +1,8 @@
 package ru.zettatech.authservice.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,11 +29,13 @@ import java.util.List;
 )
 public class SecurityConfig {
 
-	@Autowired
-	private JwtAuthenticationEntryPoint unauthorizedHandler;
+	private final JwtAuthenticationEntryPoint unauthorizedHandler;
+	private final UserServiceImpl userDetailsService;
 
-	@Autowired
-	private UserServiceImpl userDetailsService;
+	public SecurityConfig(JwtAuthenticationEntryPoint unauthorizedHandler, UserServiceImpl userDetailsService) {
+		this.unauthorizedHandler = unauthorizedHandler;
+		this.userDetailsService = userDetailsService;
+	}
 
 	// Бин для кастомного фильтра JWT
 	@Bean
@@ -77,22 +77,16 @@ public class SecurityConfig {
 		return http.build();
 	}
 
-	// Используется в методе configureGlobal() для настройки провайдера аутентификации
-	@Bean
-	public BCryptPasswordEncoder bCryptPasswordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
-
 	// Бин AuthenticationManager, используется для процесса аутентификации (логина)
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) {
 		return authConfig.getAuthenticationManager();
 	}
 
-	// Конфигурация провайдера аутентификации: где брать пользователей и как шифровать пароли
+	// Бин для кодирования паролей с помощью BCrypt
 	@Bean
-	public void configureGlobal(AuthenticationManagerBuilder auth) {
-		auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 
 	// Конфигурация CORS для фронтенд-приложений (например, на localhost:3000)

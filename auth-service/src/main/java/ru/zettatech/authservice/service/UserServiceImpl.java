@@ -29,8 +29,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	@Autowired
 	private RoleRepository roleRepository;
 
-	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	// BCryptPasswordEncoder создаем локально, чтобы избежать циклической зависимости
+	private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

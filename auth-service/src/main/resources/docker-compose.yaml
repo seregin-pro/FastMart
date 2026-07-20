@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:18
+    container_name: ru-zettatech-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
