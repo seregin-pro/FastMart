@@ -2,67 +2,255 @@
 version: '3.8'
 
 services:
-  # Сервис авторизации (Spring Boot приложение)
-  auth-service:
-    # Сборка Docker-образа из Dockerfile
+  # ==========================================
+  # API Gateway (Spring Cloud Gateway)
+  # ==========================================
+  api-gateway:
     build:
-      # Корневая директория контекста сборки (проект)
       context: .
-      # Путь к Dockerfile относительно контекста
-      dockerfile: auth-service/Dockerfile
-    # Имя контейнера после запуска
-    container_name: ru-zettatech-fastmart-auth-service
-    # Правило перезапуска: перезапускать всегда, кроме случаев ручного останова
+      dockerfile: api-gateway/Dockerfile
+    container_name: ru-zettatech-fastmart-api-gateway
     restart: unless-stopped
-    # Маппинг портов: хост:контейнер
     ports:
       - "8080:8080"
-    # Переменные окружения для конфигурации приложения
     environment:
-      # URL подключения к базе данных (хост 'db' разрешается через Docker Network)
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/auth
-      # Имя пользователя для БД
-      - SPRING_DATASOURCE_USERNAME=user
-      # Пароль для БД
-      - SPRING_DATASOURCE_PASSWORD=12345
-      # Автоматическое обновление схемы БД при каждом запуске
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    # Зависимость: сначала запускается db, потом этот сервис
+      AUTH_SERVICE_HOST: auth-service
+      AUTH_SERVICE_PORT: 8080
+      PRODUCT_SERVICE_HOST: product-service
+      PRODUCT_SERVICE_PORT: 8080
+      CART_SERVICE_HOST: cart-service
+      CART_SERVICE_PORT: 8080
+      ORDER_SERVICE_HOST: order-service
+      ORDER_SERVICE_PORT: 8080
+      PAYMENT_SERVICE_HOST: payment-service
+      PAYMENT_SERVICE_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:your-secret-key-here-min-256-bits}
     depends_on:
-      - db
-    # Подключение к пользовательской сети
+      auth-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      order-service:
+        condition: service_started
     networks:
       - ru-zettatech-fastmart-network
 
-  # Сервис базы данных PostgreSQL
-  db:
-    # Готовый образ из Docker Hub с конкретной версией
-    image: postgres:18
-    # Имя контейнера после запуска
-    container_name: ru-zettatech-fastmart-auth-postgres
-    # Правило перезапуска: перезапускать всегда, кроме случаев ручного останова
+  # ==========================================
+  # Auth Service (+ User Service consolidated)
+  # ==========================================
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: ru-zettatech-fastmart-auth-service
     restart: unless-stopped
-    # Переменные окружения для инициализации PostgreSQL
+    ports:
+      - "8081:8080"
     environment:
-      # Имя создаваемой базы данных при первом запуске
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:12345}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_JWT_SECRET: ${JWT_SECRET:your-secret-key-here-change-in-production}
+    depends_on:
+      auth-db:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Product Service
+  # ==========================================
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: ru-zettatech-fastmart-product-service
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-db:5432/products
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:12345}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    depends_on:
+      product-db:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Cart Service
+  # ==========================================
+  cart-service:
+    build:
+      context: .
+      dockerfile: cart-service/Dockerfile
+    container_name: ru-zettatech-fastmart-cart-service
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://cart-db:5432/carts
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:12345}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      cart-db:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Order Service
+  # ==========================================
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: ru-zettatech-fastmart-order-service
+    restart: unless-stopped
+    ports:
+      - "8084:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/orders
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:12345}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      order-db:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Payment Service (ЮKassa)
+  # ==========================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: ru-zettatech-fastmart-payment-service
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/orders
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:12345}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      YOOKASSA_API_KEY: ${YOOKASSA_API_KEY:test-api-key}
+      YOOKASSA_STORE_ID: ${YOOKASSA_STORE_ID:123456}
+      YOOKASSA_ENVIRONMENT: test
+    depends_on:
+      order-db:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Databases
+  # ==========================================
+  auth-db:
+    image: postgres:18
+    container_name: ru-zettatech-fastmart-auth-postgres
+    restart: unless-stopped
+    environment:
       POSTGRES_DB: auth
-      # Имя пользователя, создаваемого при первом запуске
-      POSTGRES_USER: user
-      # Пароль для пользователя, создаваемого при первом запуске
-      POSTGRES_PASSWORD: 12345
-    # Маппинг портов: хост:контейнер (доступ к БД напрямую с хоста)
+      POSTGRES_USER: ${DB_USER:user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:12345}
     ports:
       - "5432:5432"
-    # Монтирование тома: данные БД сохраняются на хосте для персистентности
     volumes:
-      - ./auth-service/src/main/resources/pg_data:/var/lib/postgresql/data
-    # Подключение к пользовательской сети
+      - auth-db-data:/var/lib/postgresql/data
     networks:
       - ru-zettatech-fastmart-network
 
-# Описание пользовательских сетей
+  product-db:
+    image: postgres:18
+    container_name: ru-zettatech-fastmart-product-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: ${DB_USER:user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:12345}
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - ru-zettatech-fastmart-network
+
+  cart-db:
+    image: postgres:18
+    container_name: ru-zettatech-fastmart-cart-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: carts
+      POSTGRES_USER: ${DB_USER:user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:12345}
+    volumes:
+      - cart-db-data:/var/lib/postgresql/data
+    networks:
+      - ru-zettatech-fastmart-network
+
+  order-db:
+    image: postgres:18
+    container_name: ru-zettatech-fastmart-order-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: ${DB_USER:user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:12345}
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Cache (Redis)
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: ru-zettatech-fastmart-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - ru-zettatech-fastmart-network
+
+  # ==========================================
+  # Frontend (React)
+  # ==========================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend-react/Dockerfile
+    container_name: ru-zettatech-fastmart-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - ru-zettatech-fastmart-network
+
+# Volumes for database persistence
+volumes:
+  auth-db-data:
+  product-db-data:
+  cart-db-data:
+  order-db-data:
+
+# Network for inter-service communication
 networks:
-  # Сеть для общения между контейнерами
   ru-zettatech-fastmart-network:
-    # Драйвер bridge — контейнеры изолированы от сети хоста, но общаются между собой
     driver: bridge

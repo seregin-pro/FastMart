@@ -8,6 +8,8 @@ plugins {
 }
 rootProject.name = "FastMart"
 include("fastmart-common")
+include("api-gateway")
+include("payment-service")
 include("product-service")
 include("cart-service")
 include("order-service")
