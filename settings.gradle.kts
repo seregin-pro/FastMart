@@ -7,8 +7,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 rootProject.name = "FastMart"
+include("fastmart-common")
 include("product-service")
 include("cart-service")
-include("user-service")
 include("order-service")
 include("auth-service")

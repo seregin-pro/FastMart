@@ -1,12 +1,6 @@
 package ru.zettatech.authservice.controller;
 
-import ru.zettatech.authservice.request.dto.SignInRequest;
-import ru.zettatech.authservice.request.dto.SignUpRequest;
-import ru.zettatech.authservice.response.dto.JWTTokenResponse;
-import ru.zettatech.authservice.security.JWTTokenProvider;
-import ru.zettatech.authservice.service.RequestValidationService;
-import ru.zettatech.authservice.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,66 +13,55 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.zettatech.authservice.request.dto.SignInRequest;
+import ru.zettatech.authservice.request.dto.SignUpRequest;
+import ru.zettatech.authservice.response.dto.JWTTokenResponse;
+import ru.zettatech.authservice.security.JWTTokenProvider;
+import ru.zettatech.authservice.service.UserService;
+import ru.zettatech.common.util.ValidationUtil;
 
 import jakarta.validation.Valid;
 import java.io.UnsupportedEncodingException;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-	@Autowired
-	private UserService userService;
+    private final UserService userService;
+    private final JWTTokenProvider tokenProvider;
+    private final AuthenticationManager authenticationManager;
 
-	@Autowired
-	private RequestValidationService requestValidationService;
-	
-	@Autowired
-	private JWTTokenProvider tokenProvider;
+    @Value("${app.jwt.token.prefix}")
+    private String tokenPrefix;
 
-	@Autowired
-	private AuthenticationManager authenticationManager;
-	
-	@Value("${app.jwt.token.prefix}")
-	private String tokenPrefix;
-	
-	@PostMapping("/signup")	
-	public ResponseEntity<?> singup(@Valid @RequestBody SignUpRequest request, BindingResult result) {
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest request, BindingResult result) {
+        ResponseEntity<?> requestErrors = ValidationUtil.validateRequest(result);
+        if (requestErrors != null) {
+            return requestErrors;
+        }
+        return userService.signUp(request);
+    }
 
-		ResponseEntity<?> requestErrors = requestValidationService.requestValidator(result);
+    @PostMapping("/signin")
+    public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest request, BindingResult result) throws UnsupportedEncodingException {
+        ResponseEntity<?> requestErrors = ValidationUtil.validateRequest(result);
+        if (requestErrors != null) {
+            return requestErrors;
+        }
 
-		if (!(requestErrors == null)) {
-			return requestErrors;
-		} else {
-			ResponseEntity<?> response = userService.signUp(request);
-			return response;
-		}
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
 
-	}
-	
-	@PostMapping("/signin")
-	public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest request, BindingResult result) throws UnsupportedEncodingException{
-		
-		ResponseEntity<?> requestErrors = requestValidationService.requestValidator(result);
-		JWTTokenResponse response = new JWTTokenResponse();
-		
-		if (!(requestErrors == null)) {
-			return requestErrors;
-		} else {
-			Authentication authentication = authenticationManager.authenticate(
-						new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-					);
-			
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-			String jwt = tokenPrefix + " " + tokenProvider.generateToken(authentication);
-			
-			response.setToken(jwt);
-			response.setSuccess(true);
-			
-			return new ResponseEntity<JWTTokenResponse>(response, HttpStatus.OK);
-		}
-		
-		
-	}
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenPrefix + " " + tokenProvider.generateToken(authentication);
 
+        JWTTokenResponse response = new JWTTokenResponse();
+        response.setToken(jwt);
+        response.setSuccess(true);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

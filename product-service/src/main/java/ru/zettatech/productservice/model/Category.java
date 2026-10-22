@@ -15,7 +15,6 @@ public class Category {
     private Long id;
     private String image;
     private String name;
-    @JoinColumn(name = "parent_id")
     private Long parentId;
     private byte status;
 

@@ -10,7 +10,7 @@ import ru.zettatech.productservice.filter.ProductFilter;
 import ru.zettatech.productservice.model.Category;
 import ru.zettatech.productservice.model.Manufacturer;
 import ru.zettatech.productservice.model.Product;
-import ru.zettatech.productservice.repositary.ManufacturerRepository;
+import ru.zettatech.productservice.repository.ManufacturerRepository;
 import ru.zettatech.productservice.service.ManufacturerService;
 
 import java.util.List;

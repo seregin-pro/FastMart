@@ -1,7 +1,7 @@
 package ru.zettatech.productservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service;
 import ru.zettatech.productservice.filter.ManufacturerFilter;
 import ru.zettatech.productservice.model.Category;
 import ru.zettatech.productservice.model.Manufacturer;
-import ru.zettatech.productservice.repositary.ManufacturerRepository;
+import ru.zettatech.productservice.repository.ManufacturerRepository;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ManufacturerService {
-    @Autowired
-    private ManufacturerRepository repository;
+    private final ManufacturerRepository repository;
 
     @CachePut(value = "manufacturers", key = "#manufacturer.id")
     public Manufacturer save(Manufacturer manufacturer) {

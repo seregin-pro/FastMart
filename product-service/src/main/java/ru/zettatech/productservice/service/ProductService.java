@@ -1,7 +1,7 @@
 package ru.zettatech.productservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,12 +11,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.zettatech.productservice.filter.ProductFilter;
 import ru.zettatech.productservice.model.Product;
-import ru.zettatech.productservice.repositary.ProductRepository;
+import ru.zettatech.productservice.repository.ProductRepository;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
-    @Autowired
-    private ProductRepository repository;
+    private final ProductRepository repository;
 
     @CachePut(value = "products", key = "#product.id")
     public Product save(Product product) {

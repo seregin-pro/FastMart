@@ -1,7 +1,7 @@
 package ru.zettatech.productservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,14 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.zettatech.productservice.filter.CategoryFilter;
 import ru.zettatech.productservice.model.Category;
-import ru.zettatech.productservice.repositary.CategoryRepository;
+import ru.zettatech.productservice.repository.CategoryRepository;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
-    @Autowired
-    private CategoryRepository repository;
+    private final CategoryRepository repository;
 
     @CachePut(value = "categories", key = "#category.id")
     public Category save(Category category) {

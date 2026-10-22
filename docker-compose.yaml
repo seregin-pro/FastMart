@@ -1,39 +1,68 @@
+# Версия формата файла Docker Compose
 version: '3.8'
 
 services:
+  # Сервис авторизации (Spring Boot приложение)
   auth-service:
+    # Сборка Docker-образа из Dockerfile
     build:
+      # Корневая директория контекста сборки (проект)
       context: .
+      # Путь к Dockerfile относительно контекста
       dockerfile: auth-service/Dockerfile
-    container_name: fastmart-auth-service
+    # Имя контейнера после запуска
+    container_name: ru-zettatech-fastmart-auth-service
+    # Правило перезапуска: перезапускать всегда, кроме случаев ручного останова
     restart: unless-stopped
+    # Маппинг портов: хост:контейнер
     ports:
       - "8080:8080"
+    # Переменные окружения для конфигурации приложения
     environment:
+      # URL подключения к базе данных (хост 'db' разрешается через Docker Network)
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/auth
+      # Имя пользователя для БД
       - SPRING_DATASOURCE_USERNAME=user
+      # Пароль для БД
       - SPRING_DATASOURCE_PASSWORD=12345
+      # Автоматическое обновление схемы БД при каждом запуске
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    # Зависимость: сначала запускается db, потом этот сервис
     depends_on:
       - db
+    # Подключение к пользовательской сети
     networks:
-      - fastmart-network
+      - ru-zettatech-fastmart-network
 
+  # Сервис базы данных PostgreSQL
   db:
+    # Готовый образ из Docker Hub с конкретной версией
     image: postgres:18
-    container_name: fastmart-postgres
+    # Имя контейнера после запуска
+    container_name: ru-zettatech-fastmart-auth-postgres
+    # Правило перезапуска: перезапускать всегда, кроме случаев ручного останова
     restart: unless-stopped
+    # Переменные окружения для инициализации PostgreSQL
     environment:
+      # Имя создаваемой базы данных при первом запуске
       POSTGRES_DB: auth
+      # Имя пользователя, создаваемого при первом запуске
       POSTGRES_USER: user
+      # Пароль для пользователя, создаваемого при первом запуске
       POSTGRES_PASSWORD: 12345
+    # Маппинг портов: хост:контейнер (доступ к БД напрямую с хоста)
     ports:
       - "5432:5432"
+    # Монтирование тома: данные БД сохраняются на хосте для персистентности
     volumes:
       - ./auth-service/src/main/resources/pg_data:/var/lib/postgresql/data
+    # Подключение к пользовательской сети
     networks:
-      - fastmart-network
+      - ru-zettatech-fastmart-network
 
+# Описание пользовательских сетей
 networks:
-  fastmart-network:
+  # Сеть для общения между контейнерами
+  ru-zettatech-fastmart-network:
+    # Драйвер bridge — контейнеры изолированы от сети хоста, но общаются между собой
     driver: bridge
