@@ -2,34 +2,49 @@ package ru.zettatech.orderservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.zettatech.orderservice.dto.request.CancelOrderRequest;
 import ru.zettatech.orderservice.dto.request.CreateOrderRequest;
 import ru.zettatech.orderservice.dto.request.GetAllOrderRequest;
 import ru.zettatech.orderservice.service.OrderService;
 
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/get_all_orders")
-    public ResponseEntity<?> getAllOrders(@RequestBody GetAllOrderRequest request) {
-        return orderService.getAllOrders(request);
-    }
-
-    @PostMapping("/create_order")
+    @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request) {
         return orderService.createOrder(request);
     }
 
-    @PostMapping("/cancel_order")
-    public ResponseEntity<?> cancelOrder(@RequestBody CancelOrderRequest request) {
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
+        CancelOrderRequest request = new CancelOrderRequest();
+        request.setOrderId(orderId);
         return orderService.cancelOrder(request);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllOrders(@RequestParam Long cartId) {
+        GetAllOrderRequest request = new GetAllOrderRequest();
+        request.setCartId(cartId);
+        return orderService.getAllOrders(request);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrderById(@PathVariable Long orderId) {
+        return orderService.findById(orderId)
+                .map(order -> ResponseEntity.ok(order))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam String status) {
+        return orderService.updateOrderStatus(orderId, status);
     }
 }

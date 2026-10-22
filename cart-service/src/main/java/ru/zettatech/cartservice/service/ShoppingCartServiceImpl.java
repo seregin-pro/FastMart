@@ -3,7 +3,6 @@ package ru.zettatech.cartservice.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.zettatech.cartservice.entity.CartItem;
@@ -11,10 +10,13 @@ import ru.zettatech.cartservice.entity.ShoppingCart;
 import ru.zettatech.cartservice.repository.CartItemRepository;
 import ru.zettatech.cartservice.repository.ShoppingCartRepository;
 import ru.zettatech.cartservice.request.dto.*;
+import ru.zettatech.cartservice.response.dto.CartResponse;
 import ru.zettatech.cartservice.response.dto.CreateShoppingCartResponse;
 import ru.zettatech.cartservice.response.dto.ServiceResponse;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +37,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             response.setCode("200");
             response.setMessage("Shopping cart created!");
             response.setCartId(savedShoppingCart.getId());
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error Creating Shopping Cart", e);
             ServiceResponse res = new ServiceResponse();
             res.setCode("501");
             res.setMessage("Internal Server Error");
-            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(res);
         }
     }
 
@@ -59,10 +61,16 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 presentCartItem.setTotalPrice(totalPrice);
                 cartItemRepository.save(presentCartItem);
                 res.setCode("200");
-                res.setMessage("Products added successfully to the cart");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                res.setMessage("Product quantity updated in cart");
+                return ResponseEntity.ok(res);
             } else {
                 ShoppingCart cart = shoppingCartRepository.findById(request.getCartId()).orElse(null);
+                if (cart == null) {
+                    res.setCode("404");
+                    res.setMessage("Shopping cart not found");
+                    return ResponseEntity.notFound().build();
+                }
+
                 CartItem cartItem = new CartItem();
                 cartItem.setProductId(request.getProductItem().getProductId());
                 cartItem.setProductName(request.getProductItem().getProductName());
@@ -77,14 +85,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 shoppingCartRepository.save(cart);
                 cartItemRepository.save(cartItem);
                 res.setCode("200");
-                res.setMessage("Products added successfully to the cart");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                res.setMessage("Product added to cart");
+                return ResponseEntity.ok(res);
             }
         } catch (Exception e) {
             log.error("Error adding product to cart", e);
             res.setCode("501");
-            res.setMessage("Internal Server Error!");
-            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+            res.setMessage("Internal Server Error");
+            return ResponseEntity.internalServerError().body(res);
         }
     }
 
@@ -97,12 +105,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             cartItemRepository.deleteByCartIdAndProductId(request.getCartId(), request.getProductId());
             res.setCode("200");
             res.setMessage("Item removed from cart");
-            return new ResponseEntity<>(res, HttpStatus.OK);
+            return ResponseEntity.ok(res);
         } catch (Exception e) {
             log.error("Error removing cart item", e);
             res.setCode("500");
             res.setMessage("Internal Server Error");
-            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(res);
         }
     }
 
@@ -115,17 +123,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             if (shoppingCart != null) {
                 res.setCode("200");
                 res.setMessage("User Cart Exists");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                return ResponseEntity.ok(res);
             } else {
                 res.setCode("404");
                 res.setMessage("User Cart Not Exists");
-                return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
             log.error("Error checking cart predicate", e);
             res.setCode("501");
             res.setMessage("Internal Server Error");
-            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(res);
         }
     }
 
@@ -133,7 +141,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     public ResponseEntity<?> decreaseProductQuantityFromCart(DecreaseProductQtyRequest request) {
         ServiceResponse res = new ServiceResponse();
-        BigDecimal totalPrice = BigDecimal.ZERO;
 
         try {
             CartItem presentCartItem = cartItemRepository.findByCartIdAndProductId(
@@ -141,44 +148,45 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             log.debug("Checking cart item: {}", presentCartItem);
 
             if (presentCartItem == null) {
-                res.setCode("200");
+                res.setCode("404");
                 res.setMessage("Product not found in cart");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                return ResponseEntity.ok(res);
             }
 
             if (presentCartItem.getTotalPrice().equals(presentCartItem.getPricePerUnit())) {
                 cartItemRepository.deleteByCartIdAndProductId(request.getCartId(), request.getProductId());
                 res.setCode("200");
-                res.setMessage("Product removed from the cart");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                res.setMessage("Product removed from cart");
+                return ResponseEntity.ok(res);
             } else {
                 presentCartItem.setProductQuantity(presentCartItem.getProductQuantity() - 1);
-                totalPrice = presentCartItem.getTotalPrice().subtract(presentCartItem.getPricePerUnit());
+                BigDecimal totalPrice = presentCartItem.getTotalPrice().subtract(presentCartItem.getPricePerUnit());
                 presentCartItem.setTotalPrice(totalPrice);
                 cartItemRepository.save(presentCartItem);
                 res.setCode("200");
-                res.setMessage("Products qty updated successfully in the cart");
-                return new ResponseEntity<>(res, HttpStatus.OK);
+                res.setMessage("Product quantity updated in cart");
+                return ResponseEntity.ok(res);
             }
         } catch (Exception e) {
             log.error("Error decreasing product quantity", e);
             res.setCode("404");
             res.setMessage("Error updating product quantity");
-            return new ResponseEntity<>(res, HttpStatus.OK);
+            return ResponseEntity.ok(res);
         }
     }
 
     @Override
     public ResponseEntity<?> getAllCartItems(GetCartItemRequest request) {
-        ShoppingCart cartItems = shoppingCartRepository.findById(request.getCartId()).orElse(null);
+        ShoppingCart cart = shoppingCartRepository.findById(request.getCartId()).orElse(null);
 
-        if (cartItems != null) {
-            return new ResponseEntity<>(cartItems, HttpStatus.OK);
+        if (cart != null) {
+            CartResponse response = buildCartResponse(cart);
+            return ResponseEntity.ok(response);
         } else {
             ServiceResponse res = new ServiceResponse();
-            res.setCode("200");
-            res.setMessage("No Cart Found");
-            return new ResponseEntity<>(res, HttpStatus.OK);
+            res.setCode("404");
+            res.setMessage("Cart not found");
+            return ResponseEntity.ok(res);
         }
     }
 
@@ -191,13 +199,40 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 cartItemRepository.deleteByCartIdAndProductId(request.getCartId(), productId);
             }
             response.setCode("200");
-            response.setMessage("Cart Successfully cleaned");
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            response.setMessage("Cart cleaned successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error cleaning cart", e);
             response.setCode("500");
             response.setMessage("Internal server Error");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(response);
         }
+    }
+
+    private CartResponse buildCartResponse(ShoppingCart cart) {
+        CartResponse response = new CartResponse();
+        response.setCartId(cart.getId());
+        response.setUserId(cart.getUserId());
+
+        List<CartResponse.CartItemResponse> items = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        for (CartItem item : cart.getCartItems()) {
+            CartResponse.CartItemResponse cartItemResponse = new CartResponse.CartItemResponse();
+            cartItemResponse.setId(item.getId());
+            cartItemResponse.setProductId(item.getProductId());
+            cartItemResponse.setProductName(item.getProductName());
+            cartItemResponse.setProductQuantity(item.getProductQuantity());
+            cartItemResponse.setPricePerUnit(item.getPricePerUnit());
+            cartItemResponse.setTotalPrice(item.getTotalPrice());
+            cartItemResponse.setProductImageUrl(item.getProductImageUrl());
+            items.add(cartItemResponse);
+            totalPrice = totalPrice.add(item.getTotalPrice());
+        }
+
+        response.setItems(items);
+        response.setTotalPrice(totalPrice);
+        response.setItemCount(items.size());
+        return response;
     }
 }

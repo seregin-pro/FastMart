@@ -1,14 +1,13 @@
 package ru.zettatech.authservice.repository;
 
-import ru.zettatech.authservice.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import ru.zettatech.authservice.entity.User;
+
+import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>{
-
-	User findUserByUsername(String username);
-
-
-
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findUserByUsername(String username);
+    Optional<User> findByEmail(String email);
 }

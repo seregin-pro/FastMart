@@ -8,9 +8,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.zettatech.productservice.filter.ManufacturerFilter;
-import ru.zettatech.productservice.model.Category;
 import ru.zettatech.productservice.model.Manufacturer;
 import ru.zettatech.productservice.repository.ManufacturerRepository;
 
@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ManufacturerService {
+
     private final ManufacturerRepository repository;
 
     @CachePut(value = "manufacturers", key = "#manufacturer.id")
@@ -27,10 +28,15 @@ public class ManufacturerService {
     }
 
     public Page<Manufacturer> findAll(ManufacturerFilter filter) {
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
-
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(filter.sortOrder() != null ? filter.sortOrder() : "asc"),
+                filter.sortBy() != null ? filter.sortBy() : "name"
+        );
+        Pageable pageable = PageRequest.of(
+                filter.pageNumber() != null ? filter.pageNumber() : 0,
+                filter.pageSize() != null ? filter.pageSize() : 10,
+                sort
+        );
         return repository.findAll(pageable);
     }
 

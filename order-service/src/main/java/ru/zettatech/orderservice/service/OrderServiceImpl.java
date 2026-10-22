@@ -19,6 +19,7 @@ import ru.zettatech.orderservice.repository.ProductOrderRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             ProductOrder productOrder = new ProductOrder();
             productOrder.setCartId(request.getCartId());
-            productOrder.setOrderStatus("In progress");
+            productOrder.setOrderStatus("PENDING");
 
             List<OrderItem> orderItems = new ArrayList<>();
             for (OrderProductItem item : request.getOrderItems()) {
@@ -53,13 +54,13 @@ public class OrderServiceImpl implements OrderService {
             productOrderRepository.save(productOrder);
 
             serviceResponse.setCode("200");
-            serviceResponse.setMessage("Order Placed Successfully");
-            return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+            serviceResponse.setMessage("Order placed successfully");
+            return ResponseEntity.ok(serviceResponse);
         } catch (Exception e) {
             log.error("Error creating order", e);
             serviceResponse.setCode("500");
             serviceResponse.setMessage("Internal Server Error");
-            return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+            return ResponseEntity.internalServerError().body(serviceResponse);
         }
     }
 
@@ -72,31 +73,31 @@ public class OrderServiceImpl implements OrderService {
             if (prodOrder == null) {
                 response.setCode("404");
                 response.setMessage("Order not found");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            prodOrder.setOrderStatus("Cancelled");
+            prodOrder.setOrderStatus("CANCELLED");
             productOrderRepository.save(prodOrder);
             response.setCode("200");
-            response.setMessage("Order Cancelled");
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            response.setMessage("Order cancelled");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error cancelling order", e);
             response.setCode("500");
             response.setMessage("Internal Server Error");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 
     @Override
     public ResponseEntity<?> getAllOrders(GetAllOrderRequest request) {
         try {
-            List<ProductOrder> allOrder = productOrderRepository.findByCartId(request.getCartId());
+            List<ProductOrder> allOrders = productOrderRepository.findByCartId(request.getCartId());
 
-            if (!allOrder.isEmpty()) {
+            if (!allOrders.isEmpty()) {
                 GetAllOrderResponse response = new GetAllOrderResponse();
                 List<Order> orders = new ArrayList<>();
 
-                for (ProductOrder orderEntity : allOrder) {
+                for (ProductOrder orderEntity : allOrders) {
                     Order order = new Order();
                     order.setOrderId(orderEntity.getId());
                     order.setTotalOrderPrice(orderEntity.getTotalOrderPrice());
@@ -120,13 +121,45 @@ public class OrderServiceImpl implements OrderService {
                     orders.add(order);
                 }
                 response.setOrders(orders);
-                return new ResponseEntity<>(response, HttpStatus.OK);
+                return ResponseEntity.ok(response);
             } else {
-                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+                return ResponseEntity.ok(new ArrayList<>());
             }
         } catch (Exception e) {
             log.error("Error getting orders", e);
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+            return ResponseEntity.internalServerError().body(new ArrayList<>());
+        }
+    }
+
+    public Optional<ProductOrder> findById(Long orderId) {
+        return productOrderRepository.findById(orderId);
+    }
+
+    public List<ProductOrder> findAllByUserId(Long userId) {
+        // TODO: Add userId to ProductOrder entity for proper user-based queries
+        return productOrderRepository.findAll();
+    }
+
+    public ResponseEntity<?> updateOrderStatus(Long orderId, String status) {
+        ServiceResponse response = new ServiceResponse();
+
+        try {
+            ProductOrder order = productOrderRepository.findById(orderId).orElse(null);
+            if (order == null) {
+                response.setCode("404");
+                response.setMessage("Order not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            order.setOrderStatus(status);
+            productOrderRepository.save(order);
+            response.setCode("200");
+            response.setMessage("Order status updated to " + status);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error updating order status", e);
+            response.setCode("500");
+            response.setMessage("Internal Server Error");
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }

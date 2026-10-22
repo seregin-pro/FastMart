@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.zettatech.productservice.filter.CategoryFilter;
 import ru.zettatech.productservice.model.Category;
@@ -18,6 +19,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
+
     private final CategoryRepository repository;
 
     @CachePut(value = "categories", key = "#category.id")
@@ -26,14 +28,19 @@ public class CategoryService {
     }
 
     public List<Category> findAll() {
-        return repository.findAll();
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "name"));
     }
 
     public Page<Category> findAll(CategoryFilter filter) {
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
-
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(filter.sortOrder() != null ? filter.sortOrder() : "asc"),
+                filter.sortBy() != null ? filter.sortBy() : "name"
+        );
+        Pageable pageable = PageRequest.of(
+                filter.pageNumber() != null ? filter.pageNumber() : 0,
+                filter.pageSize() != null ? filter.pageSize() : 10,
+                sort
+        );
         return repository.findAll(pageable);
     }
 
