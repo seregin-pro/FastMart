@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.zettatech.common.exception.EntityNotFoundException;
+import ru.zettatech.orderservice.client.AuthClient;
+import ru.zettatech.orderservice.client.CartClient;
+import ru.zettatech.orderservice.client.ProductClient;
 import ru.zettatech.orderservice.dto.request.CancelOrderRequest;
 import ru.zettatech.orderservice.dto.request.CreateOrderRequest;
 import ru.zettatech.orderservice.dto.request.GetAllOrderRequest;
@@ -27,18 +31,56 @@ import java.util.Optional;
 public class OrderServiceImpl implements OrderService {
 
     private final ProductOrderRepository productOrderRepository;
+    private final CartClient cartClient;
+    private final ProductClient productClient;
+    private final AuthClient authClient;
 
     @Override
     public ResponseEntity<?> createOrder(CreateOrderRequest request) {
         ServiceResponse serviceResponse = new ServiceResponse();
 
         try {
+            // 1. Validate cart exists
+            if (!cartClient.cartExists(request.getCartId())) {
+                serviceResponse.setCode("404");
+                serviceResponse.setMessage("Cart not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(serviceResponse);
+            }
+
+            // 2. Validate and reserve products
+            List<OrderProductItem> validatedItems = new ArrayList<>();
+            for (OrderProductItem item : request.getOrderItems()) {
+                if (!productClient.productExists(item.getProductId())) {
+                    serviceResponse.setCode("404");
+                    serviceResponse.setMessage("Product not found: " + item.getProductId());
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(serviceResponse);
+                }
+
+                // Try to reserve product
+                boolean reserved = productClient.reserveProduct(item.getProductId(), item.getProductQuantity());
+                if (!reserved) {
+                    serviceResponse.setCode("409");
+                    serviceResponse.setMessage("Product out of stock: " + item.getProductId());
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(serviceResponse);
+                }
+
+                // Enrich with product info from product-service
+                ProductClient.ProductInfo productInfo = productClient.getProductInfo(item.getProductId());
+                if (productInfo != null) {
+                    item.setProductName(productInfo.getName());
+                    item.setProductImageUrl(productInfo.getImage());
+                }
+
+                validatedItems.add(item);
+            }
+
+            // 3. Create order
             ProductOrder productOrder = new ProductOrder();
             productOrder.setCartId(request.getCartId());
             productOrder.setOrderStatus("PENDING");
 
             List<OrderItem> orderItems = new ArrayList<>();
-            for (OrderProductItem item : request.getOrderItems()) {
+            for (OrderProductItem item : validatedItems) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProductId(item.getProductId());
                 orderItem.setProductName(item.getProductName());
@@ -52,6 +94,9 @@ public class OrderServiceImpl implements OrderService {
             productOrder.setOrderItems(orderItems);
             productOrder.setTotalOrderPrice(request.getTotalOrderPrice());
             productOrderRepository.save(productOrder);
+
+            // 4. Clean cart
+            cartClient.cleanCart(request.getCartId());
 
             serviceResponse.setCode("200");
             serviceResponse.setMessage("Order placed successfully");
@@ -131,15 +176,12 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
     public Optional<ProductOrder> findById(Long orderId) {
         return productOrderRepository.findById(orderId);
     }
 
-    public List<ProductOrder> findAllByUserId(Long userId) {
-        // TODO: Add userId to ProductOrder entity for proper user-based queries
-        return productOrderRepository.findAll();
-    }
-
+    @Override
     public ResponseEntity<?> updateOrderStatus(Long orderId, String status) {
         ServiceResponse response = new ServiceResponse();
 

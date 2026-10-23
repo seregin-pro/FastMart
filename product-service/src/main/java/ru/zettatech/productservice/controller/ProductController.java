@@ -9,6 +9,8 @@ import ru.zettatech.productservice.filter.ProductFilter;
 import ru.zettatech.productservice.model.Product;
 import ru.zettatech.productservice.service.ProductService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -52,5 +54,14 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<?> reserveProduct(
+            @PathVariable Long id,
+            @RequestBody Map<String, Long> body) {
+        // TODO: Implement actual stock reservation logic
+        // For now, just return success
+        return ResponseEntity.ok(Map.of("code", "200", "message", "Product reserved successfully"));
     }
 }
